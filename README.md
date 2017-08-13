@@ -20,7 +20,17 @@ packer build -var-file variables.json ubuntu-1604-base.json
 
 Ensure that `variables.json` contains valid values.
 
-## Author
+## Testing Boxes
+
+A Vagrantfile was borrowed from https://github.com/geerlingguy/packer-debian-9 and a the `.json` and `preseed` stuff for enabling debian 9.  To boot into a box and dig around on the local machine, just run:
+
+```
+$ vagrant up
+$ vagrant ssh
+# (NOTE:  I'm still making this work...)
+```
+
+## Original Author
 
 Copyright (c) 2016 Nick Charlton. MIT Licensed.
 

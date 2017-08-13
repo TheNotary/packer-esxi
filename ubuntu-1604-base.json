@@ -1,26 +1,34 @@
 {
+  "variables": {
+    "admin_password": "{{env `admin_password`}}",
+    "ethernet_network_name": "VM Network",
+    "esxi_datastore": "datastore1",
+    "esxi_host": "{{env `TF_VAR_vsphere_server`}}",
+    "esxi_username": "{{env `TF_VAR_vsphere_user`}}",
+    "esxi_password": "{{env `TF_VAR_vsphere_password`}}"
+  },
+
   "builders": [{
+    "type": "vmware-iso",
     "name": "ubuntu-1604-base",
     "vm_name": "ubuntu-1604-base",
-    "type": "vmware-iso",
     "guest_os_type": "ubuntu-64",
     "tools_upload_flavor": "linux",
     "headless": false,
 
-    "iso_url": "http://releases.ubuntu.com/xenial/ubuntu-16.04.2-server-amd64.iso",
+    "iso_url": "http://old-releases.ubuntu.com/releases/xenial/ubuntu-16.04.2-server-amd64.iso",
     "iso_checksum": "737ae7041212c628de5751d15c3016058b0e833fdc32e7420209b76ca3d0a535",
     "iso_checksum_type": "sha256",
 
-    "ssh_username": "nullgrid",
+    "ssh_username": "admin",
     "ssh_password": "nullgrid",
-    "ssh_timeout": "15m",
 
+    "ssh_timeout": "15m",
     "disk_type_id": "thin",
 
     "floppy_files": [
       "preseed/ubuntu.cfg"
     ],
-
     "boot_command": [
       "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
       "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
@@ -41,13 +49,18 @@
 
     "remote_type": "esx5",
     "remote_host": "{{user `esxi_host`}}",
-    "remote_datastore": "{{user `esxi_datastore`}}",
     "remote_username": "{{user `esxi_username`}}",
     "remote_password": "{{user `esxi_password`}}",
+    "remote_datastore": "{{user `esxi_datastore`}}",
     "keep_registered": true,
 
+    "vnc_port_min": "5900",
+    "vnc_port_max": "5911",
+    "vnc_bind_address": "0.0.0.0",
+    "vnc_disable_password": "true",
+
     "vmx_data": {
-      "ethernet0.networkName": "VM Network"
+      "ethernet0.networkName": "{{user `ethernet_network_name`}}"
     }
   }],
 
@@ -58,7 +71,7 @@
         "scripts/open-vm-tools.sh"
       ],
 
-      "execute_command": "echo 'nullgrid' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"
+      "execute_command": "echo 'admin' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"
     }
   ]
 }
