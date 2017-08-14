@@ -1,19 +1,23 @@
 {
-  "provisioners": [
-    {
-      "type": "shell",
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-      "script": "scripts/basic_install.sh"
-    }
-  ],
+  "variables": {
+    "admin_password": "{{env `admin_password`}}",
+    "ethernet_network_name": "VM Network",
+    "esxi_datastore": "datastore1",
+    "esxi_host": "{{env `TF_VAR_vsphere_server`}}",
+    "esxi_username": "{{env `TF_VAR_vsphere_user`}}",
+    "esxi_password": "{{env `TF_VAR_vsphere_password`}}",
+
+    "vm_name": "debian-9-amd64"
+  },
+
   "builders": [
     {
       "type": "virtualbox-iso",
       "boot_command": [
         "<esc><wait>",
         "install <wait>",
-        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/debian9.cfg <wait>",
-        " preseed/url/checksum=e82b7f309d8c29290af0a00cb065c79e <wait>",
+        " preseed/url={{ user `preseed_http_domain` }}/debian9.cfg <wait>",
+        " preseed/url/checksum=985abb3bbeec741cea1e3856defd2ce6 <wait>",
         "debian-installer=en_US.UTF-8 <wait>",
         "auto <wait>",
         "locale=en_US.UTF-8 <wait>",
@@ -46,7 +50,7 @@
       "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
       "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
       "virtualbox_version_file": ".vbox_version",
-      "vm_name": "packer-debian-9-amd64",
+      "vm_name": "{{user `vm_name`}}",
       "vboxmanage": [
         [
           "modifyvm",
@@ -62,13 +66,14 @@
         ]
       ]
     },
+
     {
       "type": "vmware-iso",
       "boot_command": [
         "<esc><wait>",
         "install <wait>",
-        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/debian9.cfg <wait>",
-        " preseed/url/checksum=e82b7f309d8c29290af0a00cb065c79e <wait>",
+        " preseed/url={{ user `preseed_http_domain` }}/debian9.cfg <wait>",
+        " preseed/url/checksum=985abb3bbeec741cea1e3856defd2ce6 <wait>",
         "debian-installer=en_US.UTF-8 <wait>",
         "auto <wait>",
         "locale=en_US.UTF-8 <wait>",
@@ -96,25 +101,41 @@
       "iso_checksum": "d0e624fa59f42d2758cc65cfacad73c9e005798979050c8e4f77ee26bde5c913",
       "output_directory": "packer-debian-9-amd64-vmware",
       "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+      "ssh_username": "vagrant",
       "ssh_password": "vagrant",
       "ssh_port": 22,
-      "ssh_username": "vagrant",
       "ssh_wait_timeout": "10000s",
       "tools_upload_flavor": "linux",
-      "vm_name": "packer-debian-9-amd64",
+
+      "remote_type": "esx5",
+      "remote_host": "{{user `esxi_host`}}",
+      "remote_username": "{{user `esxi_username`}}",
+      "remote_password": "{{user `esxi_password`}}",
+      "remote_datastore": "{{user `esxi_datastore`}}",
+      "keep_registered": true,
+
+      "vnc_port_min": "5900",
+      "vnc_port_max": "5911",
+      "vnc_bind_address": "0.0.0.0",
+      "vnc_disable_password": "true",
+
+
+      "vm_name": "{{user `vm_name`}}",
       "vmx_data": {
         "cpuid.coresPerSocket": "1",
         "ethernet0.pciSlotNumber": "32",
+        "ethernet0.networkName": "{{user `ethernet_network_name`}}",
         "memsize": "1024",
         "numvcpus": "1"
       }
     }
   ],
-  "post-processors": [
+
+  "provisioners": [
     {
-      "output": "builds/{{.Provider}}-debian9.box",
-      "type": "vagrant"
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/basic_install.sh"
     }
   ]
 }
-
