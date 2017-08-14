@@ -1,5 +1,4 @@
 variables.json
 packer_cache/
 builds/
-
 .vagrant/
